@@ -1,10 +1,15 @@
+import { useNavigation } from '@react-navigation/native';
 import React from 'react';
 import { TouchableOpacity, StyleSheet } from 'react-native';
 import Ionicons from 'react-native-vector-icons/Ionicons';
 
 const BackButton = ({ onPress, color = '#fff', size = 28, style }) => {
+  const navigation=useNavigation();
+  const goback=()=>{
+    navigation.goBack();
+  }
   return (
-    <TouchableOpacity onPress={onPress} style={[styles.button, style]}>
+    <TouchableOpacity onPress={goback} style={[styles.button, style]}>
       <Ionicons name="arrow-back" size={size} color={color} />
     </TouchableOpacity>
   );

@@ -232,7 +232,7 @@ const Login = () => {
     
     setTimeout(() => {
       setIsLoading(false);
-      navigation.navigate('register');
+      navigation.navigate('BottomTab');
     }, 1000);
   };
 

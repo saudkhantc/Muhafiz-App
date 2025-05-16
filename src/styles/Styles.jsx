@@ -3,6 +3,7 @@ module.exports = {
         color1: '#FFF2E2',
         color2: 'pink',
         color3: '#6200ea',
+        color4:"#1a571f"
     },
     BGColor: {
         bgcolor:'#FF4B78',

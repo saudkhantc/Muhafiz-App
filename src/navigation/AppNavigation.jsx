@@ -9,19 +9,27 @@ import NewPassword from '../screens/AuthScreens/NewPassword';
 import OTPVerification from '../screens/AuthScreens/OTPVerification';
 import HomeScreen from '../screens/HomeScreen';
 import SafetyFeaturesScreen from '../screens/TobTabScreen/SafetyFeaturesSreen';
+import EmergencyContacts from '../screens/EmergencyContact';
+import ProfileScreen from '../screens/ProfileScreen';
+import EditProfile from '../screens/EditProfile';
+import BottomTabNavigator from './BottomTabNavigation';
 
 const Stack=createNativeStackNavigator();
 const AppNavigation = () => {
   return (
     <NavigationContainer>
-        <Stack.Navigator screenOptions={{headerShown:false}} initialRouteName='home'>
+        <Stack.Navigator screenOptions={{headerShown:false}} initialRouteName='login'>
             <Stack.Screen name='login' component={Login} />
             <Stack.Screen name='register' component={Register}/>
             <Stack.Screen name='forgetpassword' component={ForgetPassword}/>
             <Stack.Screen name='OTPverification' component={OTPVerification}/>
             <Stack.Screen name='newpassword' component={NewPassword}/>
+            <Stack.Screen name='BottomTab' component={BottomTabNavigator}/>
             <Stack.Screen name="home" component={HomeScreen}/>
-            <Stack.Screen name='Safety Features' component={SafetyFeaturesScreen}/>
+            <Stack.Screen name='emergencyContacts' component={EmergencyContacts}/>
+            <Stack.Screen name='profile' component={ProfileScreen}/>
+            <Stack.Screen name='editprofile' component={EditProfile}/>
+
         </Stack.Navigator>
     </NavigationContainer>
   )

@@ -17,6 +17,7 @@ import ResourceScreen from './TobTabScreen/ResourceScreen';
 import NearbyFacilityScreen from './TobTabScreen/NearbyFacilityScreen';
 import { textColor } from '../styles/Styles';
 import TopTabSelector from '../navigation/TopTabSelector';
+import CustomHeader from '../components/CustomHeader';
 
 const { width, height } = Dimensions.get('window');
 
@@ -59,14 +60,9 @@ const HomeScreen = () => {
             <StatusBar backgroundColor="#f8f0ff" barStyle="dark-content" />
 
             {/* Header */}
-            <View style={styles.header}>
-                <Text style={styles.logoText}>Muhafiz</Text>
-                <TouchableOpacity style={styles.menuButton}>
-                    <Icon name="menu" size={width * 0.06} color={textColor.color3} />
-                </TouchableOpacity>
-            </View>
+            <CustomHeader/>
 
-            <ScrollView style={styles.scrollView}>
+            <ScrollView style={styles.scrollView} showsVerticalScrollIndicator={false}>
                 {/* Profile Section */}
                 <View style={styles.profileSection}>
                     <View style={styles.profileIconContainer}>
@@ -128,6 +124,7 @@ const HomeScreen = () => {
 
                 {/* Call Emergency Services Button */}
                 <TouchableOpacity style={styles.callServiceButton}>
+                    <Icon name="phone" size={16}/>
                     <Text style={styles.callServiceText}>
                         {"Call Emergency Services"}
                     </Text>
@@ -158,20 +155,6 @@ const styles = StyleSheet.create({
     },
     scrollView: {
         paddingHorizontal: width * 0.04,
-    },
-    header: {
-        padding: width * 0.04,
-        flexDirection: 'row',
-        justifyContent: 'space-between',
-        alignItems: 'center',
-    },
-    logoText: {
-        fontSize: width * 0.05,
-        fontWeight: 'bold',
-        color: textColor.color3,
-    },
-    menuButton: {
-        padding: width * 0.01,
     },
     profileSection: {
         alignItems: 'center',
@@ -300,10 +283,13 @@ const styles = StyleSheet.create({
         borderColor: '#ccc',
         borderWidth: 1,
         marginVertical: height * 0.015,
+        flexDirection:'row',
+        justifyContent:'center'
     },
     callServiceText: {
         fontSize: width * 0.035,
         color: textColor.color3,
+        marginLeft:6
     },
     tabRow: {
         flexDirection: 'row',

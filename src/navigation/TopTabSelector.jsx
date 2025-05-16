@@ -27,7 +27,7 @@ export default TopTabSelector;
 const styles = StyleSheet.create({
   tabRow: {
     flexDirection: 'row',
-    backgroundColor: '#f0f0f0',
+    backgroundColor: '#6661',
     borderRadius: width * 0.025,
     overflow: 'hidden',
     marginTop: height * 0.02,
@@ -44,6 +44,7 @@ const styles = StyleSheet.create({
   tabText: {
     fontSize: width * 0.032,
     color: '#666',
+    fontWeight:'700'
   },
   activeTabText: {
     fontSize: width * 0.03,

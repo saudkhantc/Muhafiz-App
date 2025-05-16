@@ -86,7 +86,10 @@ const CustomTextInput = ({
   keyboardType, 
   isPassword, 
   error, 
-  onBlur 
+  onBlur ,
+  bgColor,
+  borderColor,
+   textColor: inputTextColor
 }) => {
   const [secureText, setSecureText] = useState(isPassword);
   const [isFocused, setIsFocused] = useState(false);
@@ -96,12 +99,18 @@ const CustomTextInput = ({
       {label && <Text style={styles.label}>{label}</Text>}
 
       <View style={[
-        styles.inputWrapper, 
+        styles.inputWrapper,
+        {
+           backgroundColor: bgColor || BGColor.bgcolor1,
+    borderColor: error ? textColor.color1 : (borderColor || BGColor.brcolor),
+        } ,
         isFocused && styles.focusedInput,
         error && styles.errorBorder
       ]}>
         <TextInput
-          style={styles.innput}
+          style={[styles.innput,
+            { color: inputTextColor || textColor.color1 }
+          ]}
           placeholder={placeholder}
           placeholderTextColor={textColor.color1 + '80'}
           value={value}
@@ -144,8 +153,8 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     alignItems: 'center',
     borderWidth: 1,
-    backgroundColor: BGColor.bgcolor1,
-    borderColor: BGColor.brcolor,
+    // backgroundColor: BGColor.bgcolor1,
+    // borderColor: BGColor.brcolor,
     borderRadius: 8,
   },
 //   focusedInput: {
@@ -162,7 +171,7 @@ const styles = StyleSheet.create({
   innput: {
     flex: 1,
     height: height * 0.065,
-    color: textColor.color1,
+    // color: textColor.color1,
     paddingHorizontal: width * 0.03,
     fontSize: width * 0.04,
   },
