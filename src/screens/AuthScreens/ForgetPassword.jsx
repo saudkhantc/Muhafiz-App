@@ -9,30 +9,51 @@ import {
   Platform,
   TouchableOpacity,
   Dimensions
-} from 'react-native'
-import React, { useState } from 'react'
-import Top from '../../assets/images/Top.png'
-import Logo from '../../assets/images/Logo.png'
+} from 'react-native';
+import React, { useState } from 'react';
+import Top from '../../assets/images/Top.png';
+import Logo from '../../assets/images/Logo.png';
 import { useNavigation } from '@react-navigation/native';
 import CustomTextInput from '../../components/CustomTextInput';
 import { BGColor, textColor } from '../../styles/Styles';
 import CustomButton from '../../components/CustomButton';
 import BackButton from '../../components/BackButton';
 
+import { useForm, Controller } from 'react-hook-form';
+import { yupResolver } from '@hookform/resolvers/yup';
+import * as Yup from 'yup';
+
 const { width, height } = Dimensions.get('window');
+
+// ✅ Yup schema for validation
+const ForgotPasswordSchema = Yup.object().shape({
+  email: Yup.string().email('Invalid email').required('Email is required'),
+});
 
 const ForgetPassword = () => {
   const navigation = useNavigation();
   const [isLoading, setIsLoading] = useState(false);
-  const [email, setEmail] = useState('');
 
-  const handlesubmit = () => {
-    setIsLoading(true)
+  // ✅ useForm with schema and default value
+  const {
+    control,
+    handleSubmit,
+    formState: { errors }
+  } = useForm({
+    resolver: yupResolver(ForgotPasswordSchema),
+    defaultValues: {
+      email: ''
+    }
+  });
+
+  const handleSubmitForm = (data) => {
+    setIsLoading(true);
+    console.log('Forgot Password Email:', data);
     setTimeout(() => {
-      navigation.navigate('OTPverification')
-      setIsLoading(false)
-    }, 1000)
-  }
+      navigation.navigate('OTPverification');
+      setIsLoading(false);
+    }, 1000);
+  };
 
   return (
     <SafeAreaView style={styles.container}>
@@ -46,7 +67,6 @@ const ForgetPassword = () => {
           keyboardShouldPersistTaps="handled"
           showsVerticalScrollIndicator={false}
         >
-          {/* Back Button added here */}
           <View style={styles.backButtonContainer}>
             <BackButton onPress={() => navigation.goBack()} />
           </View>
@@ -70,13 +90,22 @@ const ForgetPassword = () => {
           <View style={styles.formContainer}>
             <Text style={styles.loginText}>Forgot Password</Text>
 
-            <CustomTextInput
-              label='Email Address'
-              placeholder="Enter your email"
-              keyboardType="email-address"
-              autoCapitalize="none"
-              value={email}
-              onChangeText={setEmail}
+            {/* ✅ Controlled Email Field with Validation */}
+            <Controller
+              control={control}
+              name="email"
+              render={({ field: { onChange, onBlur, value } }) => (
+                <CustomTextInput
+                  label='Email Address'
+                  placeholder="Enter your email"
+                  keyboardType="email-address"
+                  autoCapitalize="none"
+                  onBlur={onBlur}
+                  onChangeText={onChange}
+                  value={value}
+                  error={errors.email?.message}
+                />
+              )}
             />
 
             <View style={styles.buttonContainer}>
@@ -84,8 +113,7 @@ const ForgetPassword = () => {
                 title="Submit"
                 buttonwidth='90%'
                 isLoading={isLoading}
-                onPress={handlesubmit}
-                disabled={!email}
+                onPress={handleSubmit(handleSubmitForm)}
               />
             </View>
           </View>
@@ -101,10 +129,10 @@ const ForgetPassword = () => {
         </ScrollView>
       </KeyboardAvoidingView>
     </SafeAreaView>
-  )
-}
+  );
+};
 
-export default ForgetPassword
+export default ForgetPassword;
 
 const styles = StyleSheet.create({
   container: {
@@ -130,7 +158,7 @@ const styles = StyleSheet.create({
   topImage: {
     width: '100%',
     height: '100%',
-    tintColor: 'pink'
+    tintColor: 'pink',
   },
   logoContainer: {
     alignItems: 'center',
@@ -154,7 +182,7 @@ const styles = StyleSheet.create({
   },
   buttonContainer: {
     alignItems: 'center',
-    marginVertical: height * 0.03
+    marginVertical: height * 0.03,
   },
   bottomContainer: {
     marginHorizontal: width * 0.08,
@@ -163,11 +191,11 @@ const styles = StyleSheet.create({
     justifyContent: 'space-between',
     flexDirection: 'row',
     marginBottom: 10,
-    alignSelf: 'center'
+    alignSelf: 'center',
   },
   registerText: {
     color: textColor.color1,
     fontSize: 14,
     marginBottom: 12,
   },
-})
+});

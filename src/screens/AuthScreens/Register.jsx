@@ -19,25 +19,52 @@ import CustomTextInput from '../../components/CustomTextInput';
 import SocialLogin from '../../components/SocialLogin';
 import { BGColor, textColor } from '../../styles/Styles';
 import CustomButton from '../../components/CustomButton';
+import { useForm, Controller } from 'react-hook-form';
+import { yupResolver } from '@hookform/resolvers/yup';
+import * as Yup from 'yup';
+
 
 const { width, height } = Dimensions.get('window');
+const RegisterSchema = Yup.object().shape({
+  name: Yup.string().required('Full name is required'),
+  email: Yup.string().email('Invalid email').required('Email is required'),
+  password: Yup.string().min(6, 'Password must be at least 6 characters').required('Password is required'),
+  confirmPassword: Yup.string()
+    .oneOf([Yup.ref('password')], 'Passwords must match')
+    .required('Confirm Password is required'),
+});
+
+
 
 const Register = () => {
   const navigation = useNavigation();
   const [isLoading, setIsLoading] = useState(false);
-
-  const handleLogin = () => {
-    setIsLoading(true)
+  const {
+    control,
+    handleSubmit,
+    formState: { errors }
+  } = useForm({
+    resolver: yupResolver(RegisterSchema),
+    defaultValues: {
+      name: '',
+      email: '',
+      password: '',
+      confirmPassword: '',
+    }
+  });
+  const handleRegister = (data) => {
+    setIsLoading(true);
+    console.log('Register data:', data);
     setTimeout(() => {
-       navigation.navigate('login')
-      setIsLoading(false)
-    }, 1000)
-  }
+      setIsLoading(false);
+      navigation.navigate('login');
+    }, 1000);
+  };
   return (
     <SafeAreaView style={styles.container}>
       <KeyboardAvoidingView
         style={styles.keyboardAvoidingContainer}
-       behavior="padding"
+        behavior="padding"
         keyboardVerticalOffset={Platform.OS === 'ios' ? 100 : 0}
       >
         <ScrollView
@@ -62,25 +89,71 @@ const Register = () => {
 
           <View style={styles.formContainer}>
             <Text style={styles.loginText}>Register</Text>
-            <CustomTextInput
-            label="Full Name"
-             placeholder="Enter Your Name"
-            />
-             
-            <CustomTextInput
-              label='Email'
-              placeholder="Enter your email"
-              keyboardType="email-address"
-            />
-
-            <CustomTextInput
-              label="Password"
-              placeholder="Enter your password"
-              isPassword={true}
+            <Controller
+              control={control}
+              name="name"
+              render={({ field: { onChange, onBlur, value } }) => (
+                <CustomTextInput
+                  label="Full Name"
+                  placeholder="Enter Your Name"
+                  onBlur={onBlur}
+                  onChangeText={onChange}
+                  value={value}
+                  error={errors.name?.message}
+                />
+              )}
             />
 
+            <Controller
+              control={control}
+              name="email"
+              render={({ field: { onChange, onBlur, value } }) => (
+                <CustomTextInput
+                  label="Email"
+                  placeholder="Enter your email"
+                  keyboardType="email-address"
+                  autoCapitalize="none"
+                  onBlur={onBlur}
+                  onChangeText={onChange}
+                  value={value}
+                  error={errors.email?.message}
+                />
+              )}
+            />
 
-            <View style={{marginVertical:10}}>
+            <Controller
+              control={control}
+              name="password"
+              render={({ field: { onChange, onBlur, value } }) => (
+                <CustomTextInput
+                  label="Password"
+                  placeholder="Enter your password"
+                  isPassword={true}
+                  onBlur={onBlur}
+                  onChangeText={onChange}
+                  value={value}
+                  error={errors.password?.message}
+                />
+              )}
+            />
+            <Controller
+              control={control}
+              name="confirmPassword"
+              render={({ field: { onChange, onBlur, value } }) => (
+                <CustomTextInput
+                  label="Confirm Password"
+                  placeholder="Re-enter your password"
+                  isPassword={true}
+                  onBlur={onBlur}
+                  onChangeText={onChange}
+                  value={value}
+                  error={errors.confirmPassword?.message}
+                />
+              )}
+            />
+
+
+            <View style={{ marginVertical: 10 }}>
               <SocialLogin
                 icons={[
                   require('../../assets/images/google.png'),
@@ -103,7 +176,7 @@ const Register = () => {
             </View>
             <CustomButton
               title="Register"
-              onPress={handleLogin}
+              onPress={handleSubmit(handleRegister)}
               isLoading={isLoading}
             />
           </View>
@@ -163,7 +236,7 @@ const styles = StyleSheet.create({
     justifyContent: 'space-between',
     flexDirection: 'row',
     marginBottom: 10,
-    marginTop:5
+    marginTop: 5
   },
   registerText: {
     color: textColor.color1,

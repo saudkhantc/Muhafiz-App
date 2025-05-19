@@ -9,29 +9,56 @@ import {
   Platform,
   TouchableOpacity,
   Dimensions
-} from 'react-native'
-import React, { useState } from 'react'
-import Top from '../../assets/images/Top.png'
-import Logo from '../../assets/images/Logo.png'
+} from 'react-native';
+import React, { useState } from 'react';
+import Top from '../../assets/images/Top.png';
+import Logo from '../../assets/images/Logo.png';
 import { useNavigation } from '@react-navigation/native';
 import CustomTextInput from '../../components/CustomTextInput';
 import { BGColor, textColor } from '../../styles/Styles';
 import CustomButton from '../../components/CustomButton';
 import BackButton from '../../components/BackButton';
 
+import { useForm, Controller } from 'react-hook-form';
+import { yupResolver } from '@hookform/resolvers/yup';
+import * as Yup from 'yup';
+
 const { width, height } = Dimensions.get('window');
+
+// ✅ Validation schema
+const NewPasswordSchema = Yup.object().shape({
+  newPassword: Yup.string()
+    .min(6, 'Password must be at least 6 characters')
+    .required('New password is required'),
+  confirmPassword: Yup.string()
+    .oneOf([Yup.ref('newPassword'), null], 'Passwords must match')
+    .required('Confirm password is required'),
+});
 
 const NewPassword = () => {
   const navigation = useNavigation();
   const [isLoading, setIsLoading] = useState(false);
 
-  const handlesubmit = () => {
-    setIsLoading(true)
+  const {
+    control,
+    handleSubmit,
+    formState: { errors }
+  } = useForm({
+    resolver: yupResolver(NewPasswordSchema),
+    defaultValues: {
+      newPassword: '',
+      confirmPassword: '',
+    },
+  });
+
+  const handleFormSubmit = (data) => {
+    console.log('New Password Submitted:', data);
+    setIsLoading(true);
     setTimeout(() => {
-      navigation.navigate('login')
-      setIsLoading(false)
-    }, 1000)
-  }
+      setIsLoading(false);
+      navigation.navigate('login');
+    }, 1000);
+  };
 
   return (
     <SafeAreaView style={styles.container}>
@@ -45,48 +72,59 @@ const NewPassword = () => {
           keyboardShouldPersistTaps="handled"
           showsVerticalScrollIndicator={false}
         >
-          {/* Back Button added here */}
           <View style={styles.backButtonContainer}>
             <BackButton onPress={() => navigation.goBack()} />
           </View>
 
           <View style={styles.header}>
-            <Image
-              source={Top}
-              style={styles.topImage}
-              resizeMode="cover"
-            />
+            <Image source={Top} style={styles.topImage} resizeMode="cover" />
           </View>
 
           <View style={styles.logoContainer}>
-            <Image
-              source={Logo}
-              style={styles.logo}
-              resizeMode="contain"
-            />
+            <Image source={Logo} style={styles.logo} resizeMode="contain" />
           </View>
 
           <View style={styles.formContainer}>
             <Text style={styles.loginText}>New Password</Text>
 
-            <CustomTextInput
-              label='New Password'
-              placeholder="Enter your Password"
-              isPassword={true}
+            <Controller
+              control={control}
+              name="newPassword"
+              render={({ field: { onChange, onBlur, value } }) => (
+                <CustomTextInput
+                  label="New Password"
+                  placeholder="Enter your password"
+                  isPassword={true}
+                  onBlur={onBlur}
+                  onChangeText={onChange}
+                  value={value}
+                  error={errors.newPassword?.message}
+                />
+              )}
             />
-            
-            <CustomTextInput
-              label='Confirm Password'
-              placeholder="Enter your Confirm Password"
-              isPassword={true}
+
+            <Controller
+              control={control}
+              name="confirmPassword"
+              render={({ field: { onChange, onBlur, value } }) => (
+                <CustomTextInput
+                  label="Confirm Password"
+                  placeholder="Re-enter your password"
+                  isPassword={true}
+                  onBlur={onBlur}
+                  onChangeText={onChange}
+                  value={value}
+                  error={errors.confirmPassword?.message}
+                />
+              )}
             />
+
             <View style={styles.buttonContainer}>
               <CustomButton
                 title="Submit"
-                buttonwidth='90%'
+                buttonwidth="90%"
                 isLoading={isLoading}
-                onPress={handlesubmit}
-            
+                onPress={handleSubmit(handleFormSubmit)}
               />
             </View>
           </View>
@@ -102,10 +140,10 @@ const NewPassword = () => {
         </ScrollView>
       </KeyboardAvoidingView>
     </SafeAreaView>
-  )
-}
+  );
+};
 
-export default NewPassword
+export default NewPassword;
 
 const styles = StyleSheet.create({
   container: {
@@ -131,7 +169,7 @@ const styles = StyleSheet.create({
   topImage: {
     width: '100%',
     height: '100%',
-    tintColor: 'pink'
+    tintColor: 'pink',
   },
   logoContainer: {
     alignItems: 'center',
@@ -155,7 +193,7 @@ const styles = StyleSheet.create({
   },
   buttonContainer: {
     alignItems: 'center',
-    marginVertical: height * 0.03
+    marginVertical: height * 0.03,
   },
   bottomContainer: {
     marginHorizontal: width * 0.08,
@@ -164,11 +202,11 @@ const styles = StyleSheet.create({
     justifyContent: 'space-between',
     flexDirection: 'row',
     marginBottom: 10,
-    alignSelf: 'center'
+    alignSelf: 'center',
   },
   registerText: {
     color: textColor.color1,
     fontSize: 14,
     marginBottom: 12,
   },
-})
+});

@@ -146,7 +146,7 @@ export default CustomTextInput;
 
 const styles = StyleSheet.create({
   inputcontainer: {
-    marginVertical: height * 0.01,
+    marginVertical: height * 0.006,
     width: '100%',
   },
   inputWrapper: {

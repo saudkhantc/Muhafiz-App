@@ -363,7 +363,7 @@ const styles = StyleSheet.create({
   },
   logoContainer: {
     alignItems: 'center',
-    marginTop: height * -0.1,
+    marginTop: height * -0.09,
     marginBottom: height * 0.01,
   },
   logo: {
@@ -372,7 +372,7 @@ const styles = StyleSheet.create({
   },
   formContainer: {
     paddingHorizontal: width * 0.08,
-    marginTop: height * 0.01,
+    marginTop: height * -0.03,
   },
   loginText: {
     fontSize: width * 0.08,
