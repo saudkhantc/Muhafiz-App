@@ -202,6 +202,9 @@ import CustomButton from '../../components/CustomButton';
 import { useForm, Controller } from 'react-hook-form';
 import { yupResolver } from '@hookform/resolvers/yup';
 import * as Yup from 'yup';
+import axios from 'axios';
+import AsyncStorage from '@react-native-async-storage/async-storage';
+import { Alert } from 'react-native';
 
 const { width, height } = Dimensions.get('window');
 
@@ -226,15 +229,42 @@ const Login = () => {
     }
   });
 
-  const handleLogin = (data) => {
-    setIsLoading(true);
-    console.log('Login data:', data);
-    
-    setTimeout(() => {
-      setIsLoading(false);
-      navigation.navigate('BottomTab');
-    }, 1000);
-  };
+  const handleLogin = async (data) => {
+  setIsLoading(true);
+  console.log('Login button clicked with data:', data);
+
+  try {
+    const response = await axios.post('http://localhost:5000/api/users/login', {
+      email: data.email,
+      password: data.password,
+    });
+
+    console.log('Login successful:', response.data);
+
+    // Store user/token in AsyncStorage
+    await AsyncStorage.setItem('user', JSON.stringify(response.data));
+
+    Alert.alert('Success', 'Logged in successfully!');
+    navigation.navigate('BottomTab');
+  } catch (error) {
+    console.error('Login error:', error);
+    const message =
+      error?.response?.data?.message ||
+      error?.message ||
+      'Login failed.';
+
+    Alert.alert(
+      'Error',
+      typeof message === 'string' &&
+        (message.includes('Network') || message.includes('timeout'))
+        ? 'Please check your internet or ensure the backend is running.'
+        : message
+    );
+  } finally {
+    setIsLoading(false);
+  }
+};
+
 
   return (
     <SafeAreaView style={styles.container}>

@@ -8,24 +8,25 @@ import {
   KeyboardAvoidingView,
   Platform,
   TouchableOpacity,
-  Dimensions
+  Dimensions,
 } from 'react-native';
 import React, { useState } from 'react';
-import Top from '../../assets/images/Top.png';
-import Logo from '../../assets/images/Logo.png';
-import { useNavigation } from '@react-navigation/native';
-import CustomTextInput from '../../components/CustomTextInput';
-import { BGColor, textColor } from '../../styles/Styles';
-import CustomButton from '../../components/CustomButton';
-import BackButton from '../../components/BackButton';
-
+import { useNavigation, useRoute } from '@react-navigation/native';
 import { useForm, Controller } from 'react-hook-form';
 import { yupResolver } from '@hookform/resolvers/yup';
 import * as Yup from 'yup';
+import axios from 'axios';
+
+import Top from '../../assets/images/Top.png';
+import Logo from '../../assets/images/Logo.png';
+import CustomTextInput from '../../components/CustomTextInput';
+import CustomButton from '../../components/CustomButton';
+import BackButton from '../../components/BackButton';
+import { BGColor, textColor } from '../../styles/Styles';
 
 const { width, height } = Dimensions.get('window');
 
-// ✅ Validation schema
+// ✅ Yup schema
 const NewPasswordSchema = Yup.object().shape({
   newPassword: Yup.string()
     .min(6, 'Password must be at least 6 characters')
@@ -37,12 +38,15 @@ const NewPasswordSchema = Yup.object().shape({
 
 const NewPassword = () => {
   const navigation = useNavigation();
+  const route = useRoute();
+  const { email } = route.params || {}; // ✅ Get email from navigation params
+
   const [isLoading, setIsLoading] = useState(false);
 
   const {
     control,
     handleSubmit,
-    formState: { errors }
+    formState: { errors },
   } = useForm({
     resolver: yupResolver(NewPasswordSchema),
     defaultValues: {
@@ -51,26 +55,43 @@ const NewPassword = () => {
     },
   });
 
-  const handleFormSubmit = (data) => {
-    console.log('New Password Submitted:', data);
+  const handleFormSubmit = async (data) => {
     setIsLoading(true);
-    setTimeout(() => {
+    try {
+      const response = await axios.post('http://192.168.10.12:5000/api/users/reset-password', {
+        email,
+        newPassword: data.newPassword,
+      });
+
+      console.log('Reset response:', response.data);
+
+      if (
+        response?.data?.success === true ||
+        response?.data?.message?.toLowerCase().includes('reset successful')
+      ) {
+        alert('Password reset successful');
+        navigation.navigate('login');
+      } else {
+        alert(response.data.message || 'Password reset failed');
+      }
+    } catch (error) {
+      console.error('Reset password error:', error);
+      alert('Network error. Please try again.');
+    } finally {
       setIsLoading(false);
-      navigation.navigate('login');
-    }, 1000);
+    }
   };
 
   return (
     <SafeAreaView style={styles.container}>
       <KeyboardAvoidingView
         behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
-        style={styles.keyboardAvoidingContainer}
+        style={{ flex: 1 }}
         keyboardVerticalOffset={Platform.OS === 'ios' ? height * 0.02 : 0}
       >
         <ScrollView
-          contentContainerStyle={styles.scrollContainer}
+          contentContainerStyle={{ flexGrow: 1 }}
           keyboardShouldPersistTaps="handled"
-          showsVerticalScrollIndicator={false}
         >
           <View style={styles.backButtonContainer}>
             <BackButton onPress={() => navigation.goBack()} />
@@ -84,57 +105,49 @@ const NewPassword = () => {
             <Image source={Logo} style={styles.logo} resizeMode="contain" />
           </View>
 
-          <View style={styles.formContainer}>
-            <Text style={styles.loginText}>New Password</Text>
+          <View style={styles.contentContainer}>
+            <Text style={styles.title}>Reset Password</Text>
+            <Text style={styles.subtitle}>Enter your new password below</Text>
 
+            {/* New Password Field */}
             <Controller
               control={control}
               name="newPassword"
-              render={({ field: { onChange, onBlur, value } }) => (
+              render={({ field: { onChange, value } }) => (
                 <CustomTextInput
                   label="New Password"
-                  placeholder="Enter your password"
-                  isPassword={true}
-                  onBlur={onBlur}
-                  onChangeText={onChange}
+                  placeholder="Enter new password"
                   value={value}
+                  onChangeText={onChange}
+                  secureTextEntry
                   error={errors.newPassword?.message}
                 />
               )}
             />
 
+            {/* Confirm Password Field */}
             <Controller
               control={control}
               name="confirmPassword"
-              render={({ field: { onChange, onBlur, value } }) => (
+              render={({ field: { onChange, value } }) => (
                 <CustomTextInput
                   label="Confirm Password"
-                  placeholder="Re-enter your password"
-                  isPassword={true}
-                  onBlur={onBlur}
-                  onChangeText={onChange}
+                  placeholder="Confirm new password"
                   value={value}
+                  onChangeText={onChange}
+                  secureTextEntry
                   error={errors.confirmPassword?.message}
                 />
               )}
             />
 
-            <View style={styles.buttonContainer}>
+            <View style={{ marginTop: 20 }}>
               <CustomButton
-                title="Submit"
-                buttonwidth="90%"
+                title="Reset Password"
+                buttonwidth="100%"
                 isLoading={isLoading}
                 onPress={handleSubmit(handleFormSubmit)}
               />
-            </View>
-          </View>
-
-          <View style={styles.bottomContainer}>
-            <View style={{ flexDirection: 'row' }}>
-              <Text style={styles.registerText}>Already Member? </Text>
-              <TouchableOpacity onPress={() => navigation.navigate('register')}>
-                <Text style={[styles.registerText, { fontWeight: '700' }]}>Register</Text>
-              </TouchableOpacity>
             </View>
           </View>
         </ScrollView>
@@ -149,12 +162,6 @@ const styles = StyleSheet.create({
   container: {
     flex: 1,
     backgroundColor: BGColor.bgcolor,
-  },
-  keyboardAvoidingContainer: {
-    flex: 1,
-  },
-  scrollContainer: {
-    flexGrow: 1,
   },
   backButtonContainer: {
     position: 'absolute',
@@ -180,33 +187,22 @@ const styles = StyleSheet.create({
     width: width * 0.4,
     height: width * 0.4,
   },
-  formContainer: {
+  contentContainer: {
     paddingHorizontal: width * 0.08,
     marginTop: height * 0.01,
   },
-  loginText: {
+  title: {
     fontSize: width * 0.08,
     fontWeight: 'bold',
     color: textColor.color1,
-    marginBottom: height * 0.01,
     textAlign: 'center',
+    marginBottom: height * 0.01,
   },
-  buttonContainer: {
-    alignItems: 'center',
-    marginVertical: height * 0.03,
-  },
-  bottomContainer: {
-    marginHorizontal: width * 0.08,
-    flex: 2,
-    alignItems: 'flex-end',
-    justifyContent: 'space-between',
-    flexDirection: 'row',
-    marginBottom: 10,
-    alignSelf: 'center',
-  },
-  registerText: {
+  subtitle: {
+    fontSize: width * 0.04,
     color: textColor.color1,
-    fontSize: 14,
-    marginBottom: 12,
+    textAlign: 'center',
+    opacity: 0.7,
+    marginBottom: height * 0.03,
   },
 });

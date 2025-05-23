@@ -12,20 +12,25 @@ import {
   Image
 } from 'react-native';
 import React, { useState, useRef } from 'react';
-import { useNavigation } from '@react-navigation/native';
+import { useNavigation, useRoute } from '@react-navigation/native';
 import { BGColor, textColor } from '../../styles/Styles';
 import CustomButton from '../../components/CustomButton';
 import BackButton from '../../components/BackButton';
 import Top from '../../assets/images/Top.png';
 import Logo from '../../assets/images/Logo.png';
+import axios from 'axios';
 
 const { width, height } = Dimensions.get('window');
 
 const OTPVerification = () => {
   const navigation = useNavigation();
   const [isLoading, setIsLoading] = useState(false);
+  const [resendLoading, setResendLoading] = useState(false);
+
   const [otp, setOtp] = useState(['', '', '', '', '', '']);
   const otpInputs = useRef([]);
+  const route = useRoute();
+const { email } = route.params || {};
 
   const handleChangeText = (text, index) => {
     const newOtp = [...otp];
@@ -43,16 +48,59 @@ const OTPVerification = () => {
     }
   };
 
-  const handleVerify = () => {
-    setIsLoading(true);
-    const enteredOtp = otp.join('');
-    console.log('OTP entered:', enteredOtp);
+const handleVerify = async () => {
+  setIsLoading(true);
+  const enteredOtp = otp.join('');
 
-    setTimeout(() => {
-      setIsLoading(false);
-      navigation.navigate('newpassword');
-    }, 1500);
-  };
+  try {
+    const response = await axios.post('http://localhost:5000/api/users/verify-otp', {
+      email,
+      otp: enteredOtp,
+    });
+
+    console.log('OTP response:', response.data);
+
+    // FIX: Use message text to determine success
+    if (
+      response?.data?.success === true ||
+      response?.data?.message?.toLowerCase().includes('otp verified')
+    ) {
+      console.log('Navigating to Newpassword screen...');
+      navigation.navigate('Newpassword', { email });
+    } else {
+      console.log('OTP verification failed:', response.data.message);
+      alert(response.data.message || 'OTP verification failed');
+    }
+  } catch (error) {
+    console.error('Verification error:', error);
+    alert('Network error. Please try again.');
+  } finally {
+    setIsLoading(false);
+  }
+};
+
+
+const handleResendOtp = async () => {
+  setResendLoading(true);
+
+  try {
+    const response = await axios.post('http://localhost:5000/api/users/resend-otp', {
+      email,
+    });
+
+    if (response.data.success) {
+      alert('OTP has been resent to your email.');
+    } else {
+      alert(response.data.message || 'Failed to resend OTP');
+    }
+  } catch (error) {
+    console.error('Resend OTP error:', error);
+    alert('Network error. Please try again.');
+  } finally {
+    setResendLoading(false);
+  }
+};
+
 
   return (
     <SafeAreaView style={styles.container}>
@@ -81,9 +129,12 @@ const OTPVerification = () => {
           <View style={styles.contentContainer}>
             <Text style={styles.title}>OTP Verification</Text>
             <Text style={styles.subtitle}>
-              We have sent a verification code to your email
+              We have sent a verification code to 
             </Text>
-
+            <Text style={styles.emailText}>{email}</Text>
+               <TouchableOpacity onPress={()=>navigation.navigate('Newpassword')}>
+                <Text>svas</Text>
+               </TouchableOpacity>
             <View style={styles.otpContainer}>
               {[0, 1, 2, 3, 4, 5].map((index) => (
                 <TextInput
@@ -102,7 +153,7 @@ const OTPVerification = () => {
 
             <View style={styles.resendContainer}>
               <Text style={styles.resendText}>Didn't receive code? </Text>
-              <TouchableOpacity>
+              <TouchableOpacity onPress={handleResendOtp} disabled={resendLoading}>
                 <Text style={[styles.resendText, { fontWeight: '700' }]}>Resend OTP</Text>
               </TouchableOpacity>
             </View>
@@ -203,6 +254,15 @@ const styles = StyleSheet.create({
     fontSize: width * 0.035,
     color: textColor.color1,
   },
+  emailText: {
+  fontSize: 16,
+  fontWeight: 'bold',
+  color: textColor.color1,
+  marginTop:-10,
+  marginBottom:5,
+  alignSelf:'center'
+},
+
   buttonContainer: {
     alignItems: 'center',
   },

@@ -23,7 +23,7 @@ const AppNavigation = () => {
             <Stack.Screen name='register' component={Register}/>
             <Stack.Screen name='forgetpassword' component={ForgetPassword}/>
             <Stack.Screen name='OTPverification' component={OTPVerification}/>
-            <Stack.Screen name='newpassword' component={NewPassword}/>
+            <Stack.Screen name='Newpassword' component={NewPassword}/>
             <Stack.Screen name='BottomTab' component={BottomTabNavigator}/>
             <Stack.Screen name="home" component={HomeScreen}/>
             <Stack.Screen name='emergencyContacts' component={EmergencyContacts}/>

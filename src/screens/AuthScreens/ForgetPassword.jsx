@@ -8,12 +8,13 @@ import {
   KeyboardAvoidingView,
   Platform,
   TouchableOpacity,
-  Dimensions
+  Dimensions,
+  Alert
 } from 'react-native';
 import React, { useState } from 'react';
 import Top from '../../assets/images/Top.png';
 import Logo from '../../assets/images/Logo.png';
-import { useNavigation } from '@react-navigation/native';
+import { useNavigation, useRoute } from '@react-navigation/native';
 import CustomTextInput from '../../components/CustomTextInput';
 import { BGColor, textColor } from '../../styles/Styles';
 import CustomButton from '../../components/CustomButton';
@@ -22,6 +23,7 @@ import BackButton from '../../components/BackButton';
 import { useForm, Controller } from 'react-hook-form';
 import { yupResolver } from '@hookform/resolvers/yup';
 import * as Yup from 'yup';
+import axios from 'axios';
 
 const { width, height } = Dimensions.get('window');
 
@@ -46,14 +48,39 @@ const ForgetPassword = () => {
     }
   });
 
-  const handleSubmitForm = (data) => {
-    setIsLoading(true);
-    console.log('Forgot Password Email:', data);
-    setTimeout(() => {
-      navigation.navigate('OTPverification');
-      setIsLoading(false);
-    }, 1000);
-  };
+const handleSubmitForm = async (data) => {
+  setIsLoading(true);
+  console.log('Forgot Password Email:', data);
+
+  try {
+    const response = await axios.post('http://localhost:5000/api/users/forgot-password', {
+      email: data.email,
+    });
+
+    console.log('Forgot Password response:', response.data);
+
+    Alert.alert('Success', response.data?.message || 'OTP sent successfully!');
+    navigation.navigate('OTPverification', { email: data.email });
+
+  } catch (error) {
+    console.error('Forgot Password error:', error);
+    const message =
+      error?.response?.data?.message ||
+      error?.message ||
+      'Something went wrong.';
+
+    Alert.alert(
+      'Error',
+      typeof message === 'string' &&
+        (message.includes('Network') || message.includes('timeout'))
+        ? 'Please check your internet connection or ensure the backend is running.'
+        : message
+    );
+  } finally {
+    setIsLoading(false);
+  }
+};
+
 
   return (
     <SafeAreaView style={styles.container}>

@@ -9,7 +9,8 @@ import {
     ScrollView,
     Dimensions,
     Modal,
-    Alert
+    Alert,
+    Image
 } from 'react-native';
 import Icon from 'react-native-vector-icons/MaterialCommunityIcons';
 import SafetyFeaturesSreen from './TobTabScreen/SafetyFeaturesSreen';
@@ -18,6 +19,7 @@ import NearbyFacilityScreen from './TobTabScreen/NearbyFacilityScreen';
 import { textColor } from '../styles/Styles';
 import TopTabSelector from '../navigation/TopTabSelector';
 import CustomHeader from '../components/CustomHeader';
+import Logo from '../assets/images/Logo.png';
 
 const { width, height } = Dimensions.get('window');
 
@@ -37,6 +39,7 @@ const HomeScreen = () => {
             const timer = setInterval(() => {
                 setCountdown(prev => {
                     if (prev <= 1) {
+                        
                         clearInterval(timer);
                         setCountdownActive(false);
                         // Here you would actually send the alert
@@ -65,9 +68,9 @@ const HomeScreen = () => {
             <ScrollView style={styles.scrollView} showsVerticalScrollIndicator={false}>
                 {/* Profile Section */}
                 <View style={styles.profileSection}>
-                    <View style={styles.profileIconContainer}>
-                        <Text style={styles.profileInitial}>O</Text>
-                    </View>
+                    <Image source={Logo} style={styles.profileIconContainer}/>
+                        
+            
 
                     <Text style={styles.welcomeText}>Welcome to Muhafiz</Text>
                     <Text style={styles.subtitleText}>
@@ -161,13 +164,9 @@ const styles = StyleSheet.create({
         marginVertical: height * 0.02,
     },
     profileIconContainer: {
-        backgroundColor: '#6200ea',
-        width: width * 0.15,
-        height: width * 0.15,
-        borderRadius: width * 0.075,
-        justifyContent: 'center',
-        alignItems: 'center',
-        marginBottom: height * 0.01,
+        width: width * 0.25,
+        height: width * 0.25,
+        marginBottom: height * 0.008,
     },
     profileInitial: {
         color: '#fff',
