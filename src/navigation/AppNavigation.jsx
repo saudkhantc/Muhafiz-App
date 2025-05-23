@@ -13,12 +13,14 @@ import EmergencyContacts from '../screens/EmergencyContact';
 import ProfileScreen from '../screens/ProfileScreen';
 import EditProfile from '../screens/EditProfile';
 import BottomTabNavigator from './BottomTabNavigation';
+import AuthLoading from '../screens/AuthScreens/AuthLoading';
 
 const Stack=createNativeStackNavigator();
 const AppNavigation = () => {
   return (
     <NavigationContainer>
-        <Stack.Navigator screenOptions={{headerShown:false}} initialRouteName='login'>
+        <Stack.Navigator screenOptions={{headerShown:false}} initialRouteName="AuthLoading" >
+        <Stack.Screen name="AuthLoading" component={AuthLoading} />
             <Stack.Screen name='login' component={Login} />
             <Stack.Screen name='register' component={Register}/>
             <Stack.Screen name='forgetpassword' component={ForgetPassword}/>

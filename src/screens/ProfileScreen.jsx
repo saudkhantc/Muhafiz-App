@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useEffect, useState } from 'react';
 import {
   View,
   Text,
@@ -8,82 +8,112 @@ import {
   TouchableOpacity,
   Image
 } from 'react-native';
-import { BGColor, textColor } from '../styles/Styles';
 import { SafeAreaView } from 'react-native-safe-area-context';
-import BackButton from '../components/BackButton';
+import AsyncStorage from '@react-native-async-storage/async-storage';
 import { useNavigation } from '@react-navigation/native';
+import BackButton from '../components/BackButton';
+import { BGColor, textColor } from '../styles/Styles';
+
 const { width, height } = Dimensions.get('window');
 
 const ProfileScreen = () => {
-    const navigation=useNavigation();
+  const navigation = useNavigation();
+  const [user, setUser] = useState(null);
+
+  useEffect(() => {
+    const getUserInfo = async () => {
+  try {
+    const storedUser = await AsyncStorage.getItem('user');
+    const storedImage = await AsyncStorage.getItem('profileImage');
+    if (storedUser) {
+      setUser({
+        ...JSON.parse(storedUser),
+        imageUri: storedImage,
+      });
+    }
+  } catch (error) {
+    console.error('Failed to load user info:', error);
+  }
+};
+    getUserInfo();
+  }, []);
+  const handleLogout = async () => {
+    await AsyncStorage.removeItem('user');
+    navigation.reset({
+      index: 0,
+      routes: [{ name: 'login' }],
+    });
+  };
   return (
     <SafeAreaView style={styles.container}>
-        <View style={styles.topheader}>
-           <BackButton color='black'/>
-            <TouchableOpacity style={styles.Editbutton} onPress={()=>navigation.navigate('editprofile')}>
-                <Text style={styles.edittext}>Edit</Text>
-            </TouchableOpacity>
-        </View>
-    <ScrollView contentContainerStyle={styles.contentContainer}>
-      {/* Header Section */}
-      <View style={styles.header}>
-        <Image style={styles.image}/>
-        <Text style={styles.headerTitle}>Your Profile</Text>
-        <Text style={styles.headerSubtitle}>Manage your personal and emergency information</Text>
-      </View>
-
-      {/* Personal Information Section */}
-      <View style={styles.section}>
-        <Text style={styles.sectionTitle}>Personal Information</Text>
-        <View style={styles.infoItem}>
-          <Text style={styles.infoLabel}>Name:</Text>
-          <Text style={styles.infoValue}>Jane Doe</Text>
-        </View>
-        <View style={styles.infoItem}>
-          <Text style={styles.infoLabel}>Phone:</Text>
-          <Text style={styles.infoValue}>555-123-4567</Text>
-        </View>
-        <View style={styles.infoItem}>
-          <Text style={styles.infoLabel}>Address:</Text>
-          <Text style={styles.infoValue}>123 Main Street, Anytown, USA</Text>
-        </View>
-        <View style={styles.infoItem}>
-          <Text style={styles.infoLabel}>Medical Info:</Text>
-          <Text style={styles.infoValue}>No allergies. Blood type: O+</Text>
-        </View>
-      </View>
-
-  
-      {/* Privacy Notice Section */}
-      <View style={styles.section}>
-        <Text style={[styles.sectionTitle,{color:'red'}]}>Privacy Notice</Text>
-        <Text style={styles.privacyText}>
-          Your information is stored locally on your device and is only shared with your emergency contacts when you trigger an SOS alert. We don't collect or transmit your personal data.
-        </Text>
-      </View>
-
-    
-      {/* App Settings Section */}
-      <View style={styles.section}>
-        <Text style={styles.sectionTitle}>App Settings</Text>
-        
-        <TouchableOpacity style={styles.settingItem}>
-          <Text style={styles.settingText}>Notification Settings</Text>
-        </TouchableOpacity>
-        
-        <TouchableOpacity style={styles.settingItem}>
-          <Text style={styles.settingText}>Privacy Settings</Text>
-        </TouchableOpacity>
-        
-        <TouchableOpacity style={[styles.settingItem, styles.logoutButton]}>
-          <Text style={[styles.settingText, styles.logoutText]}>Log Out</Text>
+      <View style={styles.topheader}>
+        <BackButton color='black' />
+        <TouchableOpacity style={styles.Editbutton} onPress={() => navigation.navigate('editprofile')}>
+          <Text style={styles.edittext}>Edit</Text>
         </TouchableOpacity>
       </View>
-    </ScrollView>
+
+      <ScrollView contentContainerStyle={styles.contentContainer}>
+        {/* Header Section */}
+        <View style={styles.header}>
+        <Image
+      style={styles.image}
+      source={
+        user?.imageUri
+          ? { uri: user.imageUri }
+          : require('../assets/images/Logo.png')
+      }
+    />
+          <Text style={styles.headerTitle}>Your Profile</Text>
+          <Text style={styles.headerSubtitle}>Manage your personal and emergency information</Text>
+        </View>
+
+        {/* Personal Information Section */}
+        <View style={styles.section}>
+          <Text style={styles.sectionTitle}>Personal Information</Text>
+          <View style={styles.infoItem}>
+            <Text style={styles.infoLabel}>Name:</Text>
+            <Text style={styles.infoValue}>{user?.fullname || 'Not available'}</Text>
+          </View>
+          <View style={styles.infoItem}>
+            <Text style={styles.infoLabel}>Email:</Text>
+            <Text style={styles.infoValue}>{user?.email || 'Not available'}</Text>
+          </View>
+          <View style={styles.infoItem}>
+            <Text style={styles.infoLabel}>Address:</Text>
+          <Text style={styles.infoValue}>{user?.address || 'Not available'}</Text>
+          </View>
+          
+        </View>
+
+        {/* Privacy Notice Section */}
+        <View style={styles.section}>
+          <Text style={[styles.sectionTitle, { color: 'red' }]}>Privacy Notice</Text>
+          <Text style={styles.privacyText}>
+            Your information is stored locally on your device and is only shared with your emergency contacts when you trigger an SOS alert. We don't collect or transmit your personal data.
+          </Text>
+        </View>
+
+        {/* App Settings Section */}
+        <View style={styles.section}>
+          <Text style={styles.sectionTitle}>App Settings</Text>
+
+          <TouchableOpacity style={styles.settingItem}>
+            <Text style={styles.settingText}>Notification Settings</Text>
+          </TouchableOpacity>
+
+          <TouchableOpacity style={styles.settingItem}>
+            <Text style={styles.settingText}>Privacy Settings</Text>
+          </TouchableOpacity>
+
+          <TouchableOpacity style={[styles.settingItem, styles.logoutButton]} onPress={handleLogout}>
+            <Text style={[styles.settingText, styles.logoutText]}>Log Out</Text>
+          </TouchableOpacity>
+        </View>
+      </ScrollView>
     </SafeAreaView>
   );
 };
-
 const styles = StyleSheet.create({
   container: {
     flex: 1,
@@ -118,11 +148,13 @@ edittext:{
     marginBottom: height * 0.03,
   },
   image:{
-    width:60,
-    height:60,
-    backgroundColor:'red',
-    alignSelf:'center',
-    borderRadius:30
+    width: 80,
+    height: 80,
+    borderRadius: 40, // circle
+    resizeMode: 'cover',
+    alignSelf: 'center',
+    backgroundColor:BGColor.bgcolor
+
 },
   headerTitle: {
     fontSize: width * 0.06,

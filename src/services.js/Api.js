@@ -2,7 +2,7 @@
 import axios from 'axios';
 
 const api = axios.create({
-  baseURL: 'http://localhost:5000/api', // Change to your backend URL
+  baseURL: 'https://muhafizapp-backend-phf9.onrender.com/api', 
   timeout: 10000,
   headers: {
     'Content-Type': 'application/json',

@@ -23,6 +23,7 @@ import CustomTextInput from '../../components/CustomTextInput';
 import CustomButton from '../../components/CustomButton';
 import BackButton from '../../components/BackButton';
 import { BGColor, textColor } from '../../styles/Styles';
+import { resetPassword } from '../../services.js/AuthServices';
 
 const { width, height } = Dimensions.get('window');
 
@@ -55,32 +56,30 @@ const NewPassword = () => {
     },
   });
 
+
   const handleFormSubmit = async (data) => {
-    setIsLoading(true);
-    try {
-      const response = await axios.post('http://192.168.10.12:5000/api/users/reset-password', {
-        email,
-        newPassword: data.newPassword,
-      });
+  setIsLoading(true);
+  try {
+    const response = await resetPassword(email, data.newPassword);
 
-      console.log('Reset response:', response.data);
+    console.log('Reset response:', response);
 
-      if (
-        response?.data?.success === true ||
-        response?.data?.message?.toLowerCase().includes('reset successful')
-      ) {
-        alert('Password reset successful');
-        navigation.navigate('login');
-      } else {
-        alert(response.data.message || 'Password reset failed');
-      }
-    } catch (error) {
-      console.error('Reset password error:', error);
-      alert('Network error. Please try again.');
-    } finally {
-      setIsLoading(false);
+    if (
+      response?.success === true ||
+      response?.message?.toLowerCase().includes('reset successful')
+    ) {
+      alert('Password reset successful');
+      navigation.navigate('login');
+    } else {
+      alert(response.message || 'Password reset failed');
     }
-  };
+  } catch (error) {
+    console.error('Reset password error:', error);
+    alert('Network error. Please try again.');
+  } finally {
+    setIsLoading(false);
+  }
+};
 
   return (
     <SafeAreaView style={styles.container}>

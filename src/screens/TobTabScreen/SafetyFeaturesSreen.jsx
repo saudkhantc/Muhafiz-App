@@ -1,12 +1,16 @@
-import React from 'react';
+import React, { useState } from 'react';
 import {
   View,
   Text,
   TouchableOpacity,
   StyleSheet,
   Dimensions,
+  Alert,
+  PermissionsAndroid,
+  Linking,
 } from 'react-native';
 import Icon from 'react-native-vector-icons/MaterialCommunityIcons';
+import Geolocation from '@react-native-community/geolocation';
 import { textColor } from '../../styles/Styles';
 
 const { width, height } = Dimensions.get('window');
@@ -42,13 +46,71 @@ const featureData = [
   },
 ];
 
+const requestLocationPermission = async () => {
+  try {
+    const granted = await PermissionsAndroid.request(
+      PermissionsAndroid.PERMISSIONS.ACCESS_FINE_LOCATION,
+      {
+        title: 'Location Access Permission',
+        message: 'This app needs access to your location.',
+        buttonNeutral: 'Ask Me Later',
+        buttonNegative: 'Cancel',
+        buttonPositive: 'OK',
+      }
+    );
+    return granted === PermissionsAndroid.RESULTS.GRANTED;
+  } catch (err) {
+    console.warn(err);
+    return false;
+  }
+};
+
 const SafetyFeaturesScreen = () => {
+  const [location, setLocation] = useState(null);
+
+  const handleLocationSharingPress = async () => {
+    const hasPermission = await requestLocationPermission();
+    if (!hasPermission) {
+      Alert.alert('Permission Denied', 'Location permission is required.');
+      return;
+    }
+
+    Geolocation.getCurrentPosition(
+      (position) => {
+        const { latitude, longitude } = position.coords;
+        setLocation({ latitude, longitude });
+
+        const message = `Here's my location: https://www.google.com/maps?q=${latitude},${longitude}`;
+        Linking.openURL(`sms:?body=${encodeURIComponent(message)}`);
+      },
+      (error) => {
+        console.error(error);
+        Alert.alert('Error', 'Unable to fetch location.');
+      },
+      { enableHighAccuracy: true, timeout: 15000, maximumAge: 10000 }
+    );
+  };
+
+  const handleFeaturePress = (title) => {
+    if (title === 'Location Sharing') {
+      handleLocationSharingPress();
+    } else {
+      Alert.alert(title, 'Feature tapped.');
+      // Or implement other feature logic here.
+    }
+  };
+
   return (
     <View style={styles.featuresContainer}>
       <Text style={styles.featuresSectionTitle}>Safety Features</Text>
 
       {featureData.map((feature, index) => (
-        <TouchableOpacity key={index} style={styles.featureItem}>
+        <TouchableOpacity
+          key={index}
+          style={styles.featureItem}
+          onPress={() => handleFeaturePress(feature.title)}
+          activeOpacity={0.7}
+        >
           <View style={[styles.featureIcon, { backgroundColor: feature.bgColor }]}>
             <Icon name={feature.icon} size={width * 0.05} color={feature.iconColor} />
           </View>

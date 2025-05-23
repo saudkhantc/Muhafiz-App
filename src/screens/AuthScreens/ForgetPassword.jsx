@@ -24,6 +24,7 @@ import { useForm, Controller } from 'react-hook-form';
 import { yupResolver } from '@hookform/resolvers/yup';
 import * as Yup from 'yup';
 import axios from 'axios';
+import { forgotPassword } from '../../services.js/AuthServices';
 
 const { width, height } = Dimensions.get('window');
 
@@ -53,13 +54,11 @@ const handleSubmitForm = async (data) => {
   console.log('Forgot Password Email:', data);
 
   try {
-    const response = await axios.post('http://localhost:5000/api/users/forgot-password', {
-      email: data.email,
-    });
+    const response = await forgotPassword(data.email); // ✅ use the service
 
-    console.log('Forgot Password response:', response.data);
+    console.log('Forgot Password response:', response);
 
-    Alert.alert('Success', response.data?.message || 'OTP sent successfully!');
+    Alert.alert('Success', response?.message || 'OTP sent successfully!');
     navigation.navigate('OTPverification', { email: data.email });
 
   } catch (error) {

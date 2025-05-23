@@ -6,22 +6,64 @@ import {
     ScrollView,
     TouchableOpacity,
     Dimensions,
-    CheckBox
+    Platform,
+    PermissionsAndroid,
+    Alert,
+    Share
 } from 'react-native';
 import Icon from 'react-native-vector-icons/MaterialIcons';
-import { textColor } from '../../styles/Styles';
+import Geolocation from '@react-native-community/geolocation';
+import { textColor } from '../../styles/Styles'; 
 
 const { width, height } = Dimensions.get('window');
 
 const NearbyFacilityScreen = () => {
     const [activeTab, setActiveTab] = useState('Hospitals');
-    const [selectedFacilities, setSelectedFacilities] = useState({});
+    const [location, setLocation] = useState(null);
 
-    const toggleFacility = (id) => {
-        setSelectedFacilities(prev => ({
-            ...prev,
-            [id]: !prev[id]
-        }));
+    const requestLocationPermission = async () => {
+        try {
+            if (Platform.OS === 'android') {
+                const granted = await PermissionsAndroid.request(
+                    PermissionsAndroid.PERMISSIONS.ACCESS_FINE_LOCATION,
+                    {
+                        title: 'Location Access Required',
+                        message: 'This app needs to access your location.',
+                        buttonNeutral: 'Ask Me Later',
+                        buttonNegative: 'Cancel',
+                        buttonPositive: 'OK',
+                    }
+                );
+    
+                return granted === PermissionsAndroid.RESULTS.GRANTED;
+            }
+            return true; // iOS automatically asks
+        } catch (err) {
+            console.warn(err);
+            return false;
+        }
+    };
+    
+
+    const updateLocation = async () => {
+        const hasPermission = await requestLocationPermission();
+        if (!hasPermission) {
+            Alert.alert('Permission Denied', 'Location permission is required.');
+            return;
+        }
+
+        Geolocation.getCurrentPosition(
+            (position) => {
+                const { latitude, longitude } = position.coords;
+                setLocation({ latitude, longitude });
+                Alert.alert('Location Updated', `Latitude: ${latitude}, Longitude: ${longitude}`);
+            },
+            (error) => {
+                console.error(error);
+                Alert.alert('Error', 'Unable to fetch location.');
+            },
+            { enableHighAccuracy: true, timeout: 15000, maximumAge: 10000 }
+        );
     };
 
     const facilitiesData = {
@@ -31,21 +73,18 @@ const NearbyFacilityScreen = () => {
                 name: 'City General Hospital',
                 distance: '0.7 miles',
                 address: '123 Medical Ave',
-                selected: true
             },
             {
                 id: 'h2',
                 name: 'Community Health Center',
                 distance: '1.2 miles',
                 address: '456 Care Street',
-                selected: false
             },
             {
                 id: 'h3',
                 name: 'Emergency Medical Center',
                 distance: '1.9 miles',
                 address: '789 Urgent Road',
-                selected: false
             }
         ],
         Pharmacies: [
@@ -54,14 +93,12 @@ const NearbyFacilityScreen = () => {
                 name: 'Medical Pharmacy',
                 distance: '0.3 miles',
                 address: '101 Drug Lane',
-                selected: false
             },
             {
                 id: 'p2',
                 name: 'Quick Relief DrugStore',
                 distance: '0.8 miles',
                 address: '202 Medicine Blvd',
-                selected: false
             }
         ]
     };
@@ -70,12 +107,18 @@ const NearbyFacilityScreen = () => {
         <ScrollView style={styles.container}>
             <View style={{ flexDirection: 'row', justifyContent: 'space-between' }}>
                 <Text style={styles.header}>Nearby Medical Facilities</Text>
-                <TouchableOpacity style={styles.locationbuttoon}>
+                <TouchableOpacity style={styles.locationbuttoon} onPress={updateLocation}>
                     <Icon name="location-on" size={15} color={'#1a571f'} />
-                    <Text style={styles.locationtext}>Updated My Location</Text>
+                    <Text style={styles.locationtext}>Update My Location</Text>
                 </TouchableOpacity>
             </View>
-            {/* Tab Buttons */}
+
+            {location && (
+                <Text style={{ marginBottom: 10, marginTop: -20, fontSize: 12, color: '#444' }}>
+                    Current Location: {location.latitude.toFixed(4)}, {location.longitude.toFixed(4)}
+                </Text>
+            )}
+
             <View style={styles.tabRow}>
                 {['Hospitals', 'Pharmacies'].map(tab => (
                     <TouchableOpacity
@@ -100,14 +143,11 @@ const NearbyFacilityScreen = () => {
                                 {tab}
                             </Text>
                         </View>
-
                     </TouchableOpacity>
                 ))}
             </View>
 
-            {/* Facilities List */}
             <View style={styles.facilitiesContainer}>
-
                 {facilitiesData[activeTab].map(facility => (
                     <View key={facility.id} style={styles.facilityCard}>
                         <View style={styles.facilityHeader}>
@@ -123,10 +163,19 @@ const NearbyFacilityScreen = () => {
                             <Text style={styles.distance}>{facility.distance}</Text>
                         </View>
 
-
                         <Text style={styles.address}>{facility.address}</Text>
 
-                        <TouchableOpacity style={styles.shareButton}>
+                        <TouchableOpacity
+                            style={styles.shareButton}
+                            onPress={() => {
+                                if (location) {
+                                    const message = `Here’s my location: https://www.google.com/maps?q=${location.latitude},${location.longitude}`;
+                                    Share.share({ message });
+                                } else {
+                                    Alert.alert('No Location', 'Please update your location first.');
+                                }
+                            }}
+                        >
                             <Icon name="share" size={width * 0.05} color="#6200ea" />
                             <Text style={styles.shareText}>Share Location</Text>
                         </TouchableOpacity>
@@ -140,8 +189,6 @@ const NearbyFacilityScreen = () => {
 const styles = StyleSheet.create({
     container: {
         flex: 1,
-        //backgroundColor: '#fff',
-        // padding: width * 0.05,
     },
     header: {
         fontSize: width * 0.04,
@@ -169,7 +216,6 @@ const styles = StyleSheet.create({
         alignItems: 'center',
         justifyContent: 'center',
     },
-
     tabRow: {
         flexDirection: 'row',
         backgroundColor: '#6661',
@@ -196,7 +242,6 @@ const styles = StyleSheet.create({
         color: textColor.color3,
         fontWeight: 'bold',
     },
-
     facilitiesContainer: {
         marginBottom: height * 0.02,
     },
@@ -205,7 +250,6 @@ const styles = StyleSheet.create({
         alignItems: 'center',
         marginLeft: width * 0.01,
     },
-
     facilityCard: {
         backgroundColor: '#fff',
         borderRadius: width * 0.03,

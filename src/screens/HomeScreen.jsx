@@ -10,7 +10,8 @@ import {
     Dimensions,
     Modal,
     Alert,
-    Image
+    Image,
+    Linking
 } from 'react-native';
 import Icon from 'react-native-vector-icons/MaterialCommunityIcons';
 import SafetyFeaturesSreen from './TobTabScreen/SafetyFeaturesSreen';
@@ -126,7 +127,7 @@ const HomeScreen = () => {
                 </Modal>
 
                 {/* Call Emergency Services Button */}
-                <TouchableOpacity style={styles.callServiceButton}>
+                <TouchableOpacity style={styles.callServiceButton} onPress={() => Linking.openURL('tel:911')}>
                     <Icon name="phone" size={16}/>
                     <Text style={styles.callServiceText}>
                         {"Call Emergency Services"}

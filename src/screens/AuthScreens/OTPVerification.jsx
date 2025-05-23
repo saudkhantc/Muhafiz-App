@@ -19,6 +19,7 @@ import BackButton from '../../components/BackButton';
 import Top from '../../assets/images/Top.png';
 import Logo from '../../assets/images/Logo.png';
 import axios from 'axios';
+import { verifyOtp } from '../../services.js/AuthServices';
 
 const { width, height } = Dimensions.get('window');
 
@@ -53,45 +54,63 @@ const handleVerify = async () => {
   const enteredOtp = otp.join('');
 
   try {
-    const response = await axios.post('http://localhost:5000/api/users/verify-otp', {
-      email,
-      otp: enteredOtp,
-    });
+    const response = await verifyOtp(email, enteredOtp); 
 
-    console.log('OTP response:', response.data);
+    console.log('OTP response:', response);
 
-    // FIX: Use message text to determine success
     if (
-      response?.data?.success === true ||
-      response?.data?.message?.toLowerCase().includes('otp verified')
+      response?.success === true ||
+      response?.message?.toLowerCase().includes('otp verified')
     ) {
       console.log('Navigating to Newpassword screen...');
       navigation.navigate('Newpassword', { email });
     } else {
-      console.log('OTP verification failed:', response.data.message);
-      alert(response.data.message || 'OTP verification failed');
+      console.log('OTP verification failed:', response.message);
+      alert(response.message || 'OTP verification failed');
     }
   } catch (error) {
     console.error('Verification error:', error);
-    alert('Network error. Please try again.');
+    alert(
+      error?.response?.data?.message ||
+      error?.message ||
+      'Network error. Please try again.'
+    );
   } finally {
     setIsLoading(false);
   }
 };
 
 
-const handleResendOtp = async () => {
+// const handleResendOtp = async () => {
+//   setResendLoading(true);
+
+//   try {
+//     const response = await axios.post('http://localhost:5000/api/users/resend-otp', {
+//       email,
+//     });
+
+//     if (response.data.success) {
+//       alert('OTP has been resent to your email.');
+//     } else {
+//       alert(response.data.message || 'Failed to resend OTP');
+//     }
+//   } catch (error) {
+//     console.error('Resend OTP error:', error);
+//     alert('Network error. Please try again.');
+//   } finally {
+//     setResendLoading(false);
+//   }
+// };
+const handleResendOtp = async () => {                       // resend Otp
   setResendLoading(true);
 
   try {
-    const response = await axios.post('http://localhost:5000/api/users/resend-otp', {
-      email,
-    });
+    const response = await resendOtp(email); 
 
-    if (response.data.success) {
+    if (response.success) {
       alert('OTP has been resent to your email.');
     } else {
-      alert(response.data.message || 'Failed to resend OTP');
+      alert(response.message || 'Failed to resend OTP');
     }
   } catch (error) {
     console.error('Resend OTP error:', error);
@@ -100,7 +119,6 @@ const handleResendOtp = async () => {
     setResendLoading(false);
   }
 };
-
 
   return (
     <SafeAreaView style={styles.container}>
@@ -132,9 +150,6 @@ const handleResendOtp = async () => {
               We have sent a verification code to 
             </Text>
             <Text style={styles.emailText}>{email}</Text>
-               <TouchableOpacity onPress={()=>navigation.navigate('Newpassword')}>
-                <Text>svas</Text>
-               </TouchableOpacity>
             <View style={styles.otpContainer}>
               {[0, 1, 2, 3, 4, 5].map((index) => (
                 <TextInput
