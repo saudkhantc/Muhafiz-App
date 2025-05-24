@@ -17,7 +17,7 @@ const AuthLoading = () => {
       } else {
         navigation.reset({
           index: 0,
-          routes: [{ name: 'Login' }],
+          routes: [{ name: 'login' }],
         });
       }
     };

@@ -10,7 +10,7 @@ import {
   Linking,
 } from 'react-native';
 import Icon from 'react-native-vector-icons/MaterialCommunityIcons';
-import Geolocation from '@react-native-community/geolocation';
+import Geolocation from 'react-native-geolocation-service';
 import { textColor } from '../../styles/Styles';
 
 const { width, height } = Dimensions.get('window');
@@ -48,22 +48,42 @@ const featureData = [
 
 const requestLocationPermission = async () => {
   try {
-    const granted = await PermissionsAndroid.request(
+    const fineLocationGranted = await PermissionsAndroid.request(
       PermissionsAndroid.PERMISSIONS.ACCESS_FINE_LOCATION,
       {
-        title: 'Location Access Permission',
-        message: 'This app needs access to your location.',
-        buttonNeutral: 'Ask Me Later',
-        buttonNegative: 'Cancel',
+        title: 'Location Permission Required',
+        message: 'This app needs access to your location to share it with trusted contacts.',
         buttonPositive: 'OK',
+        buttonNegative: 'Cancel',
       }
     );
-    return granted === PermissionsAndroid.RESULTS.GRANTED;
+
+    if (fineLocationGranted !== PermissionsAndroid.RESULTS.GRANTED) {
+      return false;
+    }
+
+    // For Android 10+ (API 29+), optionally request background location
+    if (Platform.Version >= 29) {
+      const backgroundGranted = await PermissionsAndroid.request(
+        PermissionsAndroid.PERMISSIONS.ACCESS_BACKGROUND_LOCATION,
+        {
+          title: 'Background Location Permission',
+          message: 'This app needs background location access for accurate sharing.',
+          buttonPositive: 'OK',
+          buttonNegative: 'Cancel',
+        }
+      );
+
+      return backgroundGranted === PermissionsAndroid.RESULTS.GRANTED;
+    }
+
+    return true;
   } catch (err) {
     console.warn(err);
     return false;
   }
 };
+
 
 const SafetyFeaturesScreen = () => {
   const [location, setLocation] = useState(null);

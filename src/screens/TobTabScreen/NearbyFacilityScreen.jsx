@@ -12,7 +12,7 @@ import {
     Share
 } from 'react-native';
 import Icon from 'react-native-vector-icons/MaterialIcons';
-import Geolocation from '@react-native-community/geolocation';
+import Geolocation from 'react-native-geolocation-service';
 import { textColor } from '../../styles/Styles'; 
 
 const { width, height } = Dimensions.get('window');
@@ -21,28 +21,44 @@ const NearbyFacilityScreen = () => {
     const [activeTab, setActiveTab] = useState('Hospitals');
     const [location, setLocation] = useState(null);
 
-    const requestLocationPermission = async () => {
-        try {
-            if (Platform.OS === 'android') {
-                const granted = await PermissionsAndroid.request(
-                    PermissionsAndroid.PERMISSIONS.ACCESS_FINE_LOCATION,
-                    {
-                        title: 'Location Access Required',
-                        message: 'This app needs to access your location.',
-                        buttonNeutral: 'Ask Me Later',
-                        buttonNegative: 'Cancel',
-                        buttonPositive: 'OK',
-                    }
-                );
-    
-                return granted === PermissionsAndroid.RESULTS.GRANTED;
-            }
-            return true; // iOS automatically asks
-        } catch (err) {
-            console.warn(err);
-            return false;
+   const requestLocationPermission = async () => {
+  try {
+    const fineLocationGranted = await PermissionsAndroid.request(
+      PermissionsAndroid.PERMISSIONS.ACCESS_FINE_LOCATION,
+      {
+        title: 'Location Permission Required',
+        message: 'This app needs access to your location to share it with trusted contacts.',
+        buttonPositive: 'OK',
+        buttonNegative: 'Cancel',
+      }
+    );
+
+    if (fineLocationGranted !== PermissionsAndroid.RESULTS.GRANTED) {
+      return false;
+    }
+
+    // For Android 10+ (API 29+), optionally request background location
+    if (Platform.Version >= 29) {
+      const backgroundGranted = await PermissionsAndroid.request(
+        PermissionsAndroid.PERMISSIONS.ACCESS_BACKGROUND_LOCATION,
+        {
+          title: 'Background Location Permission',
+          message: 'This app needs background location access for accurate sharing.',
+          buttonPositive: 'OK',
+          buttonNegative: 'Cancel',
         }
-    };
+      );
+
+      return backgroundGranted === PermissionsAndroid.RESULTS.GRANTED;
+    }
+
+    return true;
+  } catch (err) {
+    console.warn(err);
+    return false;
+  }
+};
+
     
 
     const updateLocation = async () => {
