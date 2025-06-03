@@ -11,6 +11,7 @@ import {
   SafeAreaView,
   Alert,
   ActivityIndicator,
+  Linking,
 } from 'react-native';
 import Icon from 'react-native-vector-icons/MaterialIcons';
 import FontAwesome from 'react-native-vector-icons/FontAwesome';
@@ -33,6 +34,7 @@ const EmergencyContacts = () => {
 
   useEffect(() => {
     getUserId();
+    loadContacts();
   }, []);
 
   useEffect(() => {
@@ -54,16 +56,33 @@ const EmergencyContacts = () => {
   const fetchContacts = async () => {
     setLoading(true);
     try {
-      const response = await api.get(`/contacts/${userId}`);
-      setContacts(response.data);
+      const storedContacts = await AsyncStorage.getItem('contacts');
+      if (storedContacts) {
+        setContacts(JSON.parse(storedContacts));
+      } else {
+        const response = await api.get(`/contacts/${userId}`);
+        setContacts(response.data);
+        await AsyncStorage.setItem('contacts', JSON.stringify(response.data));
+      }
     } catch (error) {
-     // Alert.alert('Error', 'Failed to fetch contacts');
+      console.error('Failed to fetch contacts:', error);
     } finally {
       setLoading(false);
     }
   };
 
-  const handleAddContact = async () => {             // added contact
+  const loadContacts = async () => {
+    try {
+      const storedContacts = await AsyncStorage.getItem('contacts');
+      if (storedContacts) {
+        setContacts(JSON.parse(storedContacts));
+      }
+    } catch (error) {
+      console.error('Failed to load stored contacts:', error);
+    }
+  };
+
+  const handleAddContact = async () => {
     if (!newContactName.trim() || !newContactNumber.trim()) {
       Alert.alert('Validation', 'Please enter both name and number');
       return;
@@ -78,9 +97,10 @@ const EmergencyContacts = () => {
       };
 
       const response = await api.post('/contacts', contact);
+      const updatedContacts = [...contacts, response.data];
 
-
-      setContacts((prev) => [...prev, response.data]);
+      await AsyncStorage.setItem('contacts', JSON.stringify(updatedContacts));
+      setContacts(updatedContacts);
       setIsModalVisible(false);
       setNewContactName('');
       setNewContactNumber('');
@@ -91,7 +111,7 @@ const EmergencyContacts = () => {
     }
   };
 
-  const handleDeleteContact = (id) => {                 // deleted contact
+  const handleDeleteContact = async (id) => {
     Alert.alert('Delete Contact', 'Are you sure you want to delete this contact?', [
       { text: 'Cancel', style: 'cancel' },
       {
@@ -100,7 +120,10 @@ const EmergencyContacts = () => {
         onPress: async () => {
           try {
             await api.delete(`/contacts/${id}`);
-            setContacts((prev) => prev.filter((c) => c._id !== id));
+            const updatedContacts = contacts.filter((c) => c._id !== id);
+
+            await AsyncStorage.setItem('contacts', JSON.stringify(updatedContacts));
+            setContacts(updatedContacts);
           } catch (error) {
             Alert.alert('Error', 'Failed to delete contact');
           }
@@ -133,16 +156,28 @@ const EmergencyContacts = () => {
           </TouchableOpacity>
         </View>
 
+              <View style={styles.contactCard}>
+             <TouchableOpacity style={styles.contactInfo}     onPress={() => Linking.openURL(`tel:911`)}>
+                <FontAwesome name="user-circle" size={35} color={textColor.color3} />
+              <View style={{ marginHorizontal: 10 }}>
+                <Text style={styles.contactName}>Emergency Contact</Text>
+                <View style={styles.phoneContainer}>
+                  <Icon name="phone" size={width * 0.05} color={textColor.color3} />
+                  <Text style={styles.contactNumber}>911</Text>
+                </View>
+              </View>
+            </TouchableOpacity>
+             </View>
         {contacts.map((contact) => (
           <View key={contact._id} style={styles.contactCard}>
             <View style={styles.contactInfo}>
               <FontAwesome name="user-circle" size={35} color={textColor.color3} />
               <View style={{ marginHorizontal: 10 }}>
                 <Text style={styles.contactName}>{contact.contactName}</Text>
-                <View style={styles.phoneContainer}>
+                <TouchableOpacity style={styles.phoneContainer}  onPress={() => Linking.openURL(`tel:${contact.contactNumber}`)}>
                   <Icon name="phone" size={width * 0.05} color={textColor.color3} />
                   <Text style={styles.contactNumber}>{contact.contactNumber}</Text>
-                </View>
+                </TouchableOpacity>
               </View>
             </View>
             <TouchableOpacity style={styles.deleteButton} onPress={() => handleDeleteContact(contact._id)}>
@@ -150,7 +185,8 @@ const EmergencyContacts = () => {
             </TouchableOpacity>
           </View>
         ))}
-
+         
+           
         <Modal transparent visible={isModalVisible} animationType="slide" onRequestClose={() => setIsModalVisible(false)}>
           <View style={styles.modalContainer}>
             <View style={styles.modalContent}>
@@ -182,8 +218,6 @@ const EmergencyContacts = () => {
     </SafeAreaView>
   );
 };
-
-
 const styles = StyleSheet.create({
   container: {
     flex: 1,

@@ -30,48 +30,80 @@ const HomeScreen = () => {
     const [countdown, setCountdown] = useState(5);
     const [countdownActive, setCountdownActive] = useState(false);
 
-    const handleEmergencyPress = () => {
-        if (!countdownActive) {
-            setShowEmergencyAlert(true);
-            setCountdown(5);
-            setCountdownActive(true);
+    // const handleEmergencyPress = () => {
+    //     if (!countdownActive) {
+    //         setShowEmergencyAlert(true);
+    //         setCountdown(5);
+    //         setCountdownActive(true);
 
-            // Start countdown
-            const timer = setInterval(() => {
-                setCountdown(prev => {
-                    if (prev <= 1) {
-                        
-                        clearInterval(timer);
-                        setCountdownActive(false);
-                        // Here you would actually send the alert
-                        //Alert.alert('Emergency Alert Sent', 'Your trusted contacts have been notified');
-                        setShowEmergencyAlert(false);
-                        return 0;
-                    }
-                    return prev - 1;
-                });
-            }, 1000);
-        } else {
-            // Cancel emergency
-            setCountdownActive(false);
-            setShowEmergencyAlert(false);
-            Alert.alert('Emergency Cancelled', 'The alert has been cancelled');
-        }
-    };
+    //         const timer = setInterval(() => {
+    //             setCountdown(prev => {
+    //                 if (prev <= 1) {
+    //                     clearInterval(timer);
+    //                     setCountdownActive(false);
+
+    //                     const emergencyMessage = 'This is an emergency! Please help me. I am in danger and need assistance immediately.';
+    //                     const phoneNumber = '1234567890'; 
+
+    //                     Linking.openURL(`sms:${phoneNumber}?body=${encodeURIComponent(emergencyMessage)}`);
+
+    //                     setShowEmergencyAlert(false);
+    //                     return 0;
+    //                 }
+    //                 return prev - 1;
+    //             });
+    //         }, 1000);
+    //     } else {
+    //         setCountdownActive(false);
+    //         setShowEmergencyAlert(false);
+    //         Alert.alert('Emergency Cancelled', 'The alert has been cancelled');
+    //     }
+    // };
+const handleEmergencyPress = () => {
+    if (!countdownActive) {
+        setShowEmergencyAlert(true);
+        setCountdown(5);
+        setCountdownActive(true);
+
+        const timer = setInterval(() => {
+            setCountdown(prev => {
+                if (prev <= 1) {
+                    clearInterval(timer);
+                    setCountdownActive(false);
+
+                    const swabiLat = 34.1242173;
+                    const swabiLng = 72.4922671;
+                    const mapsUrl = `https://www.google.com/maps?q=${swabiLat},${swabiLng}`;
+
+                    const emergencyMessage = `🚨 Emergency Alert!\nI am in danger and need assistance.\nHere is my location: ${mapsUrl}`;
+                    const emergencyNumber = '911'; 
+
+                    Linking.openURL(`sms:${emergencyNumber}?body=${encodeURIComponent(emergencyMessage)}`);
+
+                    setShowEmergencyAlert(false);
+                    return 0;
+                }
+                return prev - 1;
+            });
+        }, 1000);
+    } else {
+        setCountdownActive(false);
+        setShowEmergencyAlert(false);
+        Alert.alert('Emergency Cancelled', 'The alert has been cancelled');
+    }
+};
 
     return (
         <SafeAreaView style={styles.container}>
             <StatusBar backgroundColor="#f8f0ff" barStyle="dark-content" />
 
             {/* Header */}
-            <CustomHeader/>
+            <CustomHeader />
 
             <ScrollView style={styles.scrollView} showsVerticalScrollIndicator={false}>
                 {/* Profile Section */}
                 <View style={styles.profileSection}>
-                    <Image source={Logo} style={styles.profileIconContainer}/>
-                        
-            
+                    <Image source={Logo} style={styles.profileIconContainer} />
 
                     <Text style={styles.welcomeText}>Welcome to Muhafiz</Text>
                     <Text style={styles.subtitleText}>
@@ -94,11 +126,8 @@ const HomeScreen = () => {
                     </Text>
                 </View>
 
-                <Modal
-                    visible={showEmergencyAlert}
-                    transparent={true}
-                    animationType="fade"
-                >
+                {/* Emergency Modal */}
+                <Modal visible={showEmergencyAlert} transparent={true} animationType="fade">
                     <View style={styles.modalContainer}>
                         <View style={styles.alertBox}>
                             <Text style={styles.alertTitle}>Emergency SOS</Text>
@@ -112,10 +141,7 @@ const HomeScreen = () => {
 
                             <View style={styles.alertDivider} />
 
-                            <TouchableOpacity
-                                style={styles.cancelButton}
-                                onPress={handleEmergencyPress}
-                            >
+                            <TouchableOpacity style={styles.cancelButton} onPress={handleEmergencyPress}>
                                 <Text style={styles.cancelButtonText}>CANCEL EMERGENCY</Text>
                             </TouchableOpacity>
 
@@ -126,14 +152,13 @@ const HomeScreen = () => {
                     </View>
                 </Modal>
 
-                {/* Call Emergency Services Button */}
+                {/* Call Emergency Services */}
                 <TouchableOpacity style={styles.callServiceButton} onPress={() => Linking.openURL('tel:911')}>
-                    <Icon name="phone" size={16}/>
-                    <Text style={styles.callServiceText}>
-                        {"Call Emergency Services"}
-                    </Text>
+                    <Icon name="phone" size={16} />
+                    <Text style={styles.callServiceText}>Call Emergency Services</Text>
                 </TouchableOpacity>
-                         {/* TOP Tab */}
+
+                {/* Top Tabs */}
                 <TopTabSelector
                     tabs={['Safety Features', 'Resource', 'Nearby Facilities']}
                     activeTab={activeTab}
@@ -144,11 +169,11 @@ const HomeScreen = () => {
                     {activeTab === 'Resource' && <ResourceScreen />}
                     {activeTab === 'Nearby Facilities' && <NearbyFacilityScreen />}
                 </View>
-
             </ScrollView>
         </SafeAreaView>
     );
 };
+
 
 export default HomeScreen;
 

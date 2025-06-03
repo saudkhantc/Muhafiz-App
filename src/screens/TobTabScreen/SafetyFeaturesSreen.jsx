@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React from 'react';
 import {
   View,
   Text,
@@ -6,11 +6,10 @@ import {
   StyleSheet,
   Dimensions,
   Alert,
-  PermissionsAndroid,
   Linking,
+  Share,
 } from 'react-native';
 import Icon from 'react-native-vector-icons/MaterialCommunityIcons';
-import Geolocation from 'react-native-geolocation-service';
 import { textColor } from '../../styles/Styles';
 
 const { width, height } = Dimensions.get('window');
@@ -46,69 +45,12 @@ const featureData = [
   },
 ];
 
-const requestLocationPermission = async () => {
-  try {
-    const fineLocationGranted = await PermissionsAndroid.request(
-      PermissionsAndroid.PERMISSIONS.ACCESS_FINE_LOCATION,
-      {
-        title: 'Location Permission Required',
-        message: 'This app needs access to your location to share it with trusted contacts.',
-        buttonPositive: 'OK',
-        buttonNegative: 'Cancel',
-      }
-    );
-
-    if (fineLocationGranted !== PermissionsAndroid.RESULTS.GRANTED) {
-      return false;
-    }
-
-    // For Android 10+ (API 29+), optionally request background location
-    if (Platform.Version >= 29) {
-      const backgroundGranted = await PermissionsAndroid.request(
-        PermissionsAndroid.PERMISSIONS.ACCESS_BACKGROUND_LOCATION,
-        {
-          title: 'Background Location Permission',
-          message: 'This app needs background location access for accurate sharing.',
-          buttonPositive: 'OK',
-          buttonNegative: 'Cancel',
-        }
-      );
-
-      return backgroundGranted === PermissionsAndroid.RESULTS.GRANTED;
-    }
-
-    return true;
-  } catch (err) {
-    console.warn(err);
-    return false;
-  }
-};
-
-
 const SafetyFeaturesScreen = () => {
-  const [location, setLocation] = useState(null);
-
-  const handleLocationSharingPress = async () => {
-    const hasPermission = await requestLocationPermission();
-    if (!hasPermission) {
-      Alert.alert('Permission Denied', 'Location permission is required.');
-      return;
-    }
-
-    Geolocation.getCurrentPosition(
-      (position) => {
-        const { latitude, longitude } = position.coords;
-        setLocation({ latitude, longitude });
-
-        const message = `Here's my location: https://www.google.com/maps?q=${latitude},${longitude}`;
-        Linking.openURL(`sms:?body=${encodeURIComponent(message)}`);
-      },
-      (error) => {
-        console.error(error);
-        Alert.alert('Error', 'Unable to fetch location.');
-      },
-      { enableHighAccuracy: true, timeout: 15000, maximumAge: 10000 }
-    );
+  const handleLocationSharingPress = () => {
+    const swabiLat = 34.1242173;
+    const swabiLng = 72.4922671;
+   const message = `Here's the location of Swabi: https://www.google.com/maps?q=${swabiLat},${swabiLng}`;
+   Share.share({ message });
   };
 
   const handleFeaturePress = (title) => {
@@ -116,7 +58,6 @@ const SafetyFeaturesScreen = () => {
       handleLocationSharingPress();
     } else {
       Alert.alert(title, 'Feature tapped.');
-      // Or implement other feature logic here.
     }
   };
 
@@ -181,7 +122,7 @@ const styles = StyleSheet.create({
   featureTitle: {
     fontSize: width * 0.045,
     fontWeight: '600',
-    color:textColor.color3,
+    color: textColor.color3,
     marginBottom: height * 0.005,
   },
   featureDescription: {

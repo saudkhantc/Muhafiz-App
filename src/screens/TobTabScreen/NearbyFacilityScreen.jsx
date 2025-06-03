@@ -6,80 +6,24 @@ import {
     ScrollView,
     TouchableOpacity,
     Dimensions,
-    Platform,
-    PermissionsAndroid,
     Alert,
     Share
 } from 'react-native';
 import Icon from 'react-native-vector-icons/MaterialIcons';
-import Geolocation from 'react-native-geolocation-service';
 import { textColor } from '../../styles/Styles'; 
 
 const { width, height } = Dimensions.get('window');
 
 const NearbyFacilityScreen = () => {
     const [activeTab, setActiveTab] = useState('Hospitals');
-    const [location, setLocation] = useState(null);
 
-   const requestLocationPermission = async () => {
-  try {
-    const fineLocationGranted = await PermissionsAndroid.request(
-      PermissionsAndroid.PERMISSIONS.ACCESS_FINE_LOCATION,
-      {
-        title: 'Location Permission Required',
-        message: 'This app needs access to your location to share it with trusted contacts.',
-        buttonPositive: 'OK',
-        buttonNegative: 'Cancel',
-      }
-    );
+    const swabiLocation = {
+        latitude: 34.1242173,
+        longitude: 72.4922671,
+    };
 
-    if (fineLocationGranted !== PermissionsAndroid.RESULTS.GRANTED) {
-      return false;
-    }
-
-    // For Android 10+ (API 29+), optionally request background location
-    if (Platform.Version >= 29) {
-      const backgroundGranted = await PermissionsAndroid.request(
-        PermissionsAndroid.PERMISSIONS.ACCESS_BACKGROUND_LOCATION,
-        {
-          title: 'Background Location Permission',
-          message: 'This app needs background location access for accurate sharing.',
-          buttonPositive: 'OK',
-          buttonNegative: 'Cancel',
-        }
-      );
-
-      return backgroundGranted === PermissionsAndroid.RESULTS.GRANTED;
-    }
-
-    return true;
-  } catch (err) {
-    console.warn(err);
-    return false;
-  }
-};
-
-    
-
-    const updateLocation = async () => {
-        const hasPermission = await requestLocationPermission();
-        if (!hasPermission) {
-            Alert.alert('Permission Denied', 'Location permission is required.');
-            return;
-        }
-
-        Geolocation.getCurrentPosition(
-            (position) => {
-                const { latitude, longitude } = position.coords;
-                setLocation({ latitude, longitude });
-                Alert.alert('Location Updated', `Latitude: ${latitude}, Longitude: ${longitude}`);
-            },
-            (error) => {
-                console.error(error);
-                Alert.alert('Error', 'Unable to fetch location.');
-            },
-            { enableHighAccuracy: true, timeout: 15000, maximumAge: 10000 }
-        );
+    const updateLocation = () => {
+        Alert.alert('Static Location', 'Swabi location is being used.');
     };
 
     const facilitiesData = {
@@ -123,17 +67,13 @@ const NearbyFacilityScreen = () => {
         <ScrollView style={styles.container}>
             <View style={{ flexDirection: 'row', justifyContent: 'space-between' }}>
                 <Text style={styles.header}>Nearby Medical Facilities</Text>
-                <TouchableOpacity style={styles.locationbuttoon} onPress={updateLocation}>
+                {/* <TouchableOpacity style={styles.locationbuttoon} onPress={updateLocation}>
                     <Icon name="location-on" size={15} color={'#1a571f'} />
-                    <Text style={styles.locationtext}>Update My Location</Text>
-                </TouchableOpacity>
+                    <Text style={styles.locationtext}>Use Swabi Location</Text>
+                </TouchableOpacity> */}
             </View>
 
-            {location && (
-                <Text style={{ marginBottom: 10, marginTop: -20, fontSize: 12, color: '#444' }}>
-                    Current Location: {location.latitude.toFixed(4)}, {location.longitude.toFixed(4)}
-                </Text>
-            )}
+           
 
             <View style={styles.tabRow}>
                 {['Hospitals', 'Pharmacies'].map(tab => (
@@ -184,12 +124,8 @@ const NearbyFacilityScreen = () => {
                         <TouchableOpacity
                             style={styles.shareButton}
                             onPress={() => {
-                                if (location) {
-                                    const message = `Here’s my location: https://www.google.com/maps?q=${location.latitude},${location.longitude}`;
-                                    Share.share({ message });
-                                } else {
-                                    Alert.alert('No Location', 'Please update your location first.');
-                                }
+                                const message = `Here's the location of Swabi: https://www.google.com/maps?q=${swabiLocation.latitude},${swabiLocation.longitude}`;
+                                Share.share({ message });
                             }}
                         >
                             <Icon name="share" size={width * 0.05} color="#6200ea" />
